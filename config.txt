@@ -1,0 +1,9 @@
+project.name=kafka
+project.folder=/Users/andreimariorivis/case-studies/kafka
+min.length=30
+min.chunk=10
+max.linebias=2
+#max.linesize=500
+#max.filesize=10000
+
+file.extensions=java,scala,python,sql
