@@ -3,7 +3,7 @@ on:
     tags:
       - 'v*-voyager'
 
-name: Create Release
+name: Create Voyager Release
 
 jobs:
   release:
