@@ -1,0 +1,21 @@
+name: DuDe
+run: once
+results:
+  - dir: ${instrument}/results
+commands:
+  - name: Run DuDe
+    win: java -jar dude.jar
+    unix: java -jar dude.jar
+    environment:
+      DUDE_PROJECT_NAME: ${repoName}
+      DUDE_PROJECT_FOLDER: ${repo}
+#      DUDE_RESULTS_FOLDER: ${instrument}/results
+#      DUDE_MIN_CHUNK: 10
+#      DUDE_MAX_LINEBIAS: 2
+#      DUDE_MIN_LENGTH: 30
+#      DUDE_MAX_LINESIZE: 500
+#      DUDE_MAX_FILESIZE: 10000
+#      DUDE_EXTENSIONS: .py,.js
+#      DUDE_LANGUAGES: java,xml,c++
+#      DUDE_LINGUIST_FILE: ${instrument}/languages.yml
+#      DUDE_IGNORE_FILE: ${instrument}/.ignore
