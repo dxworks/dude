@@ -15,7 +15,7 @@ jobs:
       - name: Set Version
         run: echo {{ github.ref }} > src/main/resources/dude-version
       - name: Build
-        run: maven clean package
+        run: mvn clean package
       - name: Prepare Assets
         run: |
           mkdir dude
