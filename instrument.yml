@@ -2,6 +2,10 @@ name: DuDe
 run: once
 results:
   - dir: ${instrument}/results
+  - dir: ${instrument}
+    files:
+      - "*-duplication.csv"
+      - "ignored_*.csv"
 commands:
   - name: Run DuDe
     win: java -jar dude.jar
