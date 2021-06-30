@@ -23,6 +23,7 @@ jobs:
           cp target/dude.jar dude/dude.jar
           cp dude.sh dude/dude.sh
           cp dude.bat dude/dude.bat
+          chmod +x dude/dude.sh
       - name: Create Archive
         run: zip -r dude.zip dude
       - name: Create Release
