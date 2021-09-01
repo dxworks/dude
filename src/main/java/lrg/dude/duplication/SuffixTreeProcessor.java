@@ -1,19 +1,26 @@
 package lrg.dude.duplication;
 
+import org.ardverk.collection.AdaptedPatriciaTrie;
+import org.dxworks.ignorerLibrary.Ignorer;
+import org.dxworks.ignorerLibrary.IgnorerBuilder;
+import org.dxworks.linguist.Linguist;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ServiceConfigurationError;
-
-import org.ardverk.collection.AdaptedPatriciaTrie;
+import java.util.stream.Collectors;
 
 public class SuffixTreeProcessor extends Processor {
 	public static final String SPLIT_STRING = "\r\n|\r|\n";
 
 	private ArrayList<Observer> observers = new ArrayList<Observer>();
+
+	private Linguist linguist;
+	private Ignorer ignorer;
 
 	private Entity[] entities;
 	private IMethodEntity referenceEntity;
@@ -34,16 +41,18 @@ public class SuffixTreeProcessor extends Processor {
 	/**
 	 * Constructor for dead mode (starting with a path)
 	 *
-	 * @param path
-	 *            The path where to start searching for files
+	 * @param rawValue
+	 * @param linguistFile
+	 * @param path         The path where to start searching for files
 	 */
-	public SuffixTreeProcessor(String path, StringCompareStrategy compareStrategy) throws IOException  {
+	public SuffixTreeProcessor(String linguistFile, String ignoreFile, String path, StringCompareStrategy compareStrategy) throws IOException {
+		this.linguist = new Linguist(Path.of(linguistFile).toFile());
+		this.ignorer = new IgnorerBuilder(Path.of(ignoreFile)).compile();
 		this.compareStrategy = compareStrategy;
 		long start = System.currentTimeMillis();
 		DirectoryReader cititorDirector = new DirectoryReader(path);
-		ArrayList<File> files = cititorDirector.getFilesRecursive();
 
-		if(path.endsWith("/") || path.endsWith("\\")) path = path.substring(0, path.length() - 1);
+		if (path.endsWith("/") || path.endsWith("\\")) path = path.substring(0, path.length() - 1);
 
 		PrintWriter ignoredFiles = new PrintWriter("ignored_files.csv");
 		PrintWriter linesTooLong = new PrintWriter("ignored_lines.csv");
@@ -56,47 +65,51 @@ public class SuffixTreeProcessor extends Processor {
 
 		ignoredFiles.println("filename,size,category,categoryThreshold");
 		linesTooLong.println("filename,lineNumber,size,threshold");
-		if (files != null) {
-			ArrayList<Entity> allFiles = new ArrayList<Entity>();
-			for (int i = 0; i < files.size(); i++) {
-				File currentFile = (File) files.get(i);
-				// this check is needed to filter only source files, else it will throw an
-				// exception
-				if (isSourceFile(currentFile)) {
-					// TODO: aici am problema daca e cale relativa
-					String shortName = currentFile.getAbsolutePath().substring(path.length() + 1);
 
-					Entity aFile = new SourceFile(currentFile, shortName);
+		final ArrayList<File> filesRecursive = cititorDirector.getFilesRecursive();
+		final int allFilesSize = filesRecursive.size();
+		List<File> files = filesRecursive
+				.stream().filter(file -> ignorer.accepts(file.getAbsolutePath()) && isSourceFile(file))
+				.collect(Collectors.toList());
 
-					List<String> ignoredLines = ((SourceFile)aFile).ignoredLines;
-					if(ignoredLines.size() > 0) {
-						countIgnoredLines += ignoredLines.size();
-						countFilesWithIgnoredLines++;
-						ignoredLines.forEach(line -> linesTooLong.println(line));
-					}
+		System.out.println("Ignored " + (allFilesSize - files.size()) + " files from ignore file (out of " + allFilesSize + " files)");
 
-					int lines = aFile.getCode().size();
-					if(lines < DuDe.minDuplicationLength) {
-						ignoredFiles.println(aFile.getName() + "," + lines + ",SMALL," +  DuDe.minDuplicationLength);
-						counterSmall++;
-					}
-					else if(lines >= DuDe.maxFileSize) {
-						ignoredFiles.println(aFile.getName() + "," + lines + ",LARGE," +  DuDe.maxFileSize);
-						counterLarge++;
-					}
-					else allFiles.add(aFile);
+		ArrayList<Entity> allFiles = new ArrayList<>();
+		for (File currentFile : files) {
+			// this check is needed to filter only source files, else it will throw an
+			// exception
+				// TODO: aici am problema daca e cale relativa
+				String shortName = currentFile.getAbsolutePath().substring(path.length() + 1);
+
+				Entity aFile = new SourceFile(currentFile, shortName);
+
+				List<String> ignoredLines = ((SourceFile) aFile).ignoredLines;
+				if (ignoredLines.size() > 0) {
+					countIgnoredLines += ignoredLines.size();
+					countFilesWithIgnoredLines++;
+					ignoredLines.forEach(line -> linesTooLong.println(line));
 				}
-			}
-			entities = allFiles.toArray(new Entity[allFiles.size()]);
-		} else
-			entities = new SourceFile[0];
+
+				int lines = aFile.getCode().size();
+				if (lines < DuDe.minDuplicationLength) {
+					ignoredFiles.println(aFile.getName() + "," + lines + ",SMALL," + DuDe.minDuplicationLength);
+					counterSmall++;
+				} else if (lines >= DuDe.maxFileSize) {
+					ignoredFiles.println(aFile.getName() + "," + lines + ",LARGE," + DuDe.maxFileSize);
+					counterLarge++;
+				} else allFiles.add(aFile);
+		}
+		entities = allFiles.toArray(new Entity[allFiles.size()]);
 		long stop = System.currentTimeMillis();
 		System.out.print("\nDUDE: Got " + entities.length + " files in: ");
 		System.out.println(TimeMeasurer.convertTimeToString(stop - start) + "\n");
 
-		if(counterSmall > 0) System.out.println("Ignored " + counterSmall + " too small files (<" + DuDe.minDuplicationLength + ")");
-		if(counterLarge > 0) System.out.println("Ignored " + counterLarge + " too large files (>=" + DuDe.maxFileSize + ")");
-		if(countFilesWithIgnoredLines > 0) System.out.println("Ignored " + countIgnoredLines + " too large lines (> " + DuDe.maxLineSize + " characters) in " + countFilesWithIgnoredLines + " files");
+		if (counterSmall > 0)
+			System.out.println("Ignored " + counterSmall + " too small files (<" + DuDe.minDuplicationLength + ")");
+		if (counterLarge > 0)
+			System.out.println("Ignored " + counterLarge + " too large files (>=" + DuDe.maxFileSize + ")");
+		if (countFilesWithIgnoredLines > 0)
+			System.out.println("Ignored " + countIgnoredLines + " too large lines (> " + DuDe.maxLineSize + " characters) in " + countFilesWithIgnoredLines + " files");
 
 		ignoredFiles.close();
 		linesTooLong.close();
@@ -106,8 +119,7 @@ public class SuffixTreeProcessor extends Processor {
 	/**
 	 * Constructor for the alive mode
 	 *
-	 * @param methods
-	 *            Entities (methods from MeMoJ / MeMoRIA)
+	 * @param methods Entities (methods from MeMoJ / MeMoRIA)
 	 */
 	public SuffixTreeProcessor(Entity[] methods, StringCompareStrategy compareStrategy) {
 		this.compareStrategy = compareStrategy;
@@ -127,8 +139,8 @@ public class SuffixTreeProcessor extends Processor {
 	private boolean isSourceFile(File currentFile) {
 		String absolutePath = currentFile.getAbsolutePath();
 
-		for (String extension : DuDe.fileExtensions) {
-			if (absolutePath.endsWith("." + extension) && isAcceptable(absolutePath))
+		for (String extension : DuDe.extensions) {
+			if (!extension.isEmpty() && absolutePath.endsWith(extension) && isAcceptable(absolutePath))
 				return true;
 		}
 
@@ -141,7 +153,7 @@ public class SuffixTreeProcessor extends Processor {
 			}
 		}
 
-		return false;
+		return linguist.isOf(absolutePath, DuDe.languages.toArray(new String[0]));
 	}
 
 	private boolean isAcceptable(String absolutePath) {
@@ -170,8 +182,7 @@ public class SuffixTreeProcessor extends Processor {
 	/**
 	 * Cleans the code of a single entity (method body, file)
 	 *
-	 * @param entity
-	 *            The entity to work on
+	 * @param entity The entity to work on
 	 * @return an array of "clean" code (no whitespaces etc.)
 	 */
 	private MatrixLineList entityToNewMatrixLines(Entity entity, int startPos) {
@@ -251,9 +262,9 @@ public class SuffixTreeProcessor extends Processor {
 			}
 
 			int perc = j * 100 / noOfEntities;
-			if(perc >= crtPercent + 5) {
+			if (perc >= crtPercent + 5) {
 				crtPercent = perc;
-				System.err.println(crtPercent + "% files processed (" + j + "/" + noOfEntities +")");
+				System.err.println(crtPercent + "% files processed (" + j + "/" + noOfEntities + ")");
 			}
 
 			try {
@@ -270,9 +281,9 @@ public class SuffixTreeProcessor extends Processor {
 					// if no reference entity, search dot-matrix against all previous entities
 					searchDuplicates(startingMatrixColumn, noOfColumns);
 					duration = (System.currentTimeMillis() - start) / 1000;
-					if(duration >= 1.0) {
+					if (duration >= 1.0) {
 						System.err.println("File " + j + " of " + noOfEntities + ": " + entities[j].getName() + ": " + noOfColumns + " lines");
-						System.err.println("Search duplicates in matrix (" + totalNoOfRows + " x " + noOfColumns  + ") in " + duration + " sec.");
+						System.err.println("Search duplicates in matrix (" + totalNoOfRows + " x " + noOfColumns + ") in " + duration + " sec.");
 					}
 				}
 				// removeAll does also the free
@@ -387,12 +398,9 @@ public class SuffixTreeProcessor extends Processor {
 	 * boundaries, if it is a part of the same 2 entities as the current coordinate,
 	 * and if it is a duplication
 	 *
-	 * @param reference
-	 *            Current coordinate
-	 * @param dx
-	 *            the x bias
-	 * @param dy
-	 *            the y bias
+	 * @param reference Current coordinate
+	 * @param dx        the x bias
+	 * @param dy        the y bias
 	 * @return true if it is a valid coordinate, and false if not
 	 */
 	private boolean validCoordinate(Coordinate reference, int dx, int dy) {
@@ -416,8 +424,7 @@ public class SuffixTreeProcessor extends Processor {
 	/**
 	 * Tries to find a valid coordinate to be added to the current Duplication
 	 *
-	 * @param start
-	 *            The last coordinate of the current Duplication
+	 * @param start The last coordinate of the current Duplication
 	 * @return The next valid coordinate or null if none found
 	 */
 	private Coordinate getNextCoordinate(Coordinate start, int currentExactSize) {
@@ -449,12 +456,10 @@ public class SuffixTreeProcessor extends Processor {
 	 * some pattern (diagonal) to group duplicate code lines into duplicate code
 	 * fragments
 	 *
-	 * @param rowNo
-	 *            Row number of the cell where the pattern tracing starts
-	 * @param colNo
-	 *            Column number of the cell where the pattern tracing starts
+	 * @param rowNo Row number of the cell where the pattern tracing starts
+	 * @param colNo Column number of the cell where the pattern tracing starts
 	 * @return Duplication entity or null if the Duplication is too short to be
-	 *         accepted.
+	 * accepted.
 	 */
 	private Duplication traceDuplication(int rowNo, int colNo) {
 		CoordinateList coordinates = new CoordinateList();
@@ -529,8 +534,7 @@ public class SuffixTreeProcessor extends Processor {
 	/**
 	 * Marks the used coordinates in the matrix
 	 *
-	 * @param coordinates
-	 *            The coordinates list
+	 * @param coordinates The coordinates list
 	 */
 	private void markCoordinates(CoordinateList coordinates) {
 		int size = coordinates.size();
@@ -546,8 +550,7 @@ public class SuffixTreeProcessor extends Processor {
 	/**
 	 * Extracts the duplication type, from a given signature
 	 *
-	 * @param signature
-	 *            Duplication's signature
+	 * @param signature Duplication's signature
 	 * @return Duplication type
 	 */
 	private DuplicationType extractType(String signature) {
@@ -569,8 +572,7 @@ public class SuffixTreeProcessor extends Processor {
 	/**
 	 * Extracts a duplicate signature starting from a list of Coordinates
 	 *
-	 * @param coordinates
-	 *            The list
+	 * @param coordinates The list
 	 * @return The duplication signature
 	 */
 	private String extractSignature(CoordinateList coordinates) {
@@ -644,8 +646,7 @@ public class SuffixTreeProcessor extends Processor {
 	/**
 	 * Filters the source code fragment
 	 *
-	 * @param bruteText
-	 *            Code unfiltered
+	 * @param bruteText Code unfiltered
 	 * @return clean code
 	 */
 	private StringList cleanCode(StringList bruteText) {
@@ -667,8 +668,7 @@ public class SuffixTreeProcessor extends Processor {
 	/**
 	 * Cleans the code of a single entity (method body, file)
 	 *
-	 * @param entity
-	 *            The entity to work on
+	 * @param entity The entity to work on
 	 * @return an array of "clean" code (no whitespaces etc.)
 	 */
 	private MatrixLineList entityToMatrixLines(Entity entity) {
