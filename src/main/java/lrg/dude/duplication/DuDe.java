@@ -135,7 +135,7 @@ public class DuDe {
 			resultsMap.put(duplicatedFile, duplicationForSecondaryFile);
 		}
 
-		PrintWriter external_duplication = new PrintWriter(projectName + "-duplication.csv");
+		PrintWriter external_duplication = new PrintWriter("results/" + projectName + "-external_duplication.csv");
 
 		List<PropertyDTO> listOfInternalDuplicationObjects = new ArrayList<>();
 
@@ -168,7 +168,7 @@ public class DuDe {
 		System.err.println(listOfInternalDuplicationObjects.size() + " file with internal duplication wrote to: "
 				+ projectName + "-internal_duplication.json");
 		System.err.println(externalDuplicationCases + " pairs of with files with inter-file duplication wrote to: "
-				+ projectName + "-duplication.csv");
+				+ projectName + "-external_duplication.csv");
 	}
 
 	private static Argumenthor configureArgumenthor(List<String> args, String filename) {

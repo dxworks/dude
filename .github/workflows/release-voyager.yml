@@ -1,10 +1,9 @@
 on:
   push:
     tags:
-      - 'v*'
-      - '!*-voyager'
+      - 'v*-voyager'
 
-name: Create Release
+name: Create Voyager Release
 
 jobs:
   release:
@@ -13,8 +12,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Set Version
+        run: echo {{ github.ref }} > src/main/resources/dude-version
       - name: Build
-        run: mvn clean install
+        run: mvn clean package
       - name: Prepare Assets
         run: |
           mkdir dude
@@ -22,9 +23,9 @@ jobs:
           mkdir dude/logs
           cp README.md dude/README.md
           cp target/dude.jar dude/dude.jar
-          cp dude.sh dude/dude.sh
-          cp dude.bat dude/dude.bat
-          chmod +x dude/dude.sh
+          cp instrument.yml dude/instrument.yml
+          cp languages.yml dude/languages.yml
+          cp .ignore dude/.ignore
       - name: Create Archive
         run: zip -r dude.zip dude
       - name: Create Release
@@ -34,7 +35,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Dude ${{ github.ref }}
+          release_name: dude ${{ github.ref }} (Voyager)
           draft: false
           prerelease: false
       - name: Upload Release Asset
@@ -45,5 +46,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./dude.zip
-          asset_name: dude.zip
+          asset_name: dude-voyager.zip
           asset_content_type: application/zip
