@@ -5,10 +5,11 @@ results:
   - dir: ${instrument}
     files:
       - "ignored_*.csv"
+
 commands:
   - name: Run DuDe
-    win: java -jar dude.jar
-    unix: java -jar dude.jar
+    win: java -Xmx${max-heap} -jar dude.jar
+    unix: java -Xmx${max-heap} -jar dude.jar
     environment:
       DUDE_PROJECT_NAME: ${repoName}
       DUDE_PROJECT_FOLDER: ${repo}
@@ -22,3 +23,8 @@ commands:
 #      DUDE_LANGUAGES: java,xml,c++
 #      DUDE_LINGUIST_FILE: ${instrument}/languages.yml
 #      DUDE_IGNORE_FILE: ${instrument}/.ignore
+
+parameters:
+  max-heap: 8g
+
+  
