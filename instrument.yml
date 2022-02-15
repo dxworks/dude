@@ -1,4 +1,4 @@
-name: DuDe
+name: dude
 run: once
 results:
   - dir: ${instrument}/results
@@ -10,6 +10,7 @@ commands:
   - name: Run DuDe
     win: java -Xmx${max-heap} -jar dude.jar
     unix: java -Xmx${max-heap} -jar dude.jar
+
     environment:
       DUDE_PROJECT_NAME: ${repoName}
       DUDE_PROJECT_FOLDER: ${repo}

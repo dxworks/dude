@@ -112,7 +112,7 @@ public class DuDe {
 
 		if (results.length == 0) {
 			System.out.println("No duplication results");
-			System.exit(-1);
+			System.exit(0);
 		}
 
 		for (int index = 0; index < results.length; index++) {
