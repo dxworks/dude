@@ -186,6 +186,7 @@ public class DuDe {
 				new IntField(MIN_LENGTH, DEFAULT_MIN_LENGTH),
 				new IntField(MAX_LINESIZE, DEFAULT_MAX_LINESIZE),
 				new IntField(MAX_FILESIZE, DEFAULT_MAX_FILESIZE),
+				new IntField(MIN_FILESIZE, DEFAULT_MIN_FILESIZE),
 				new StringListField(LANGUAGES, Collections.emptyList(), ","),
 				new StringListField(EXTENSIONS, Collections.emptyList(), ","),
 				new StringField(LINGUIST_FILE, DEFAULT_LINGUIST_FILE),
