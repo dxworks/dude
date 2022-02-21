@@ -35,8 +35,11 @@ public class DuDe {
 	public static final String MAX_LINESIZE = "max.linesize";
 	public static final int DEFAULT_MAX_LINESIZE = 500;
 
-	public static final String MAX_FILESIZE = "max.filessize";
+	public static final String MAX_FILESIZE = "max.filesize";
 	public static final int DEFAULT_MAX_FILESIZE = 10000;
+
+	public static final String MIN_FILESIZE = "min.filesize";
+	public static final int DEFAULT_MIN_FILESIZE = 50;
 
 
 	public static final String EXTENSIONS = "extensions";
@@ -55,6 +58,7 @@ public class DuDe {
 	public static int minExactChunk = 5;
 	public static int maxLineBias = 3;
 	public static int maxLineSize = 500;
+	public static int minFileSize = 50;
 	public static int maxFileSize = 10000;
 
 
@@ -73,6 +77,7 @@ public class DuDe {
 		maxLineSize = (int) argumenthor.getRawValue(MAX_LINESIZE);
 		if (maxLineSize < 0) maxLineSize = Integer.MAX_VALUE;
 		maxFileSize = (int) argumenthor.getRawValue(MAX_FILESIZE);
+		minFileSize = (int) argumenthor.getRawValue(MIN_FILESIZE);
 		extensions = (List<String>) argumenthor.getRawValue(EXTENSIONS);
 		languages = (List<String>) argumenthor.getRawValue(LANGUAGES);
 

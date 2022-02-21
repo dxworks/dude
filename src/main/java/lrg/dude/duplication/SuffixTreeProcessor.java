@@ -91,7 +91,7 @@ public class SuffixTreeProcessor extends Processor {
 				}
 
 				int lines = aFile.getCode().size();
-				if (lines < DuDe.minDuplicationLength) {
+				if (lines < DuDe.minFileSize || lines < DuDe.minDuplicationLength) {
 					ignoredFiles.println(aFile.getName() + "," + lines + ",SMALL," + DuDe.minDuplicationLength);
 					counterSmall++;
 				} else if (lines >= DuDe.maxFileSize) {

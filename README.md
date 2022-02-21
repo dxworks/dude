@@ -35,6 +35,7 @@ environment:
   DUDE_MIN_LENGTH: 30 # the minimum lines of code involved in a duplication chain (including “gaps”)
   DUDE_MAX_LINESIZE: 500 # dude will ignore lines longer than this value
   DUDE_MAX_FILESIZE: 10000 # dude will ignore files containing a number of lines larger than this value
+  DUDE_MIN_FILESIZE: 50 # dude will ignore files containing a number of lines smaller than this value
   DUDE_EXTENSIONS: '.py,.js' # the extensions to analyse (just a sample example)
   DUDE_LANGUAGES: 'java,xml,c++' # the languages to analyse (just a sample example)
   DUDE_LINGUIST_FILE: ${instrument}/languages.yml # a file containing languages to extension mappings according to [GitHub Linguist](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
