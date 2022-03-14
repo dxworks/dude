@@ -1,5 +1,5 @@
-project.name=kafka
-project.folder=/Users/andreimariorivis/case-studies/kafka
+project.name=dude
+project.folder=.
 min.length=30
 min.chunk=10
 max.linebias=2

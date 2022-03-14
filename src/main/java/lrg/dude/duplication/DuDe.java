@@ -51,6 +51,8 @@ public class DuDe {
 	private static final String IGNORE_FILE = "ignore.file";
 	private static final String DEFAULT_IGNORE_FILE = ".ignore";
 
+	private static final String WHITELIST_FILE = "whitelist.file";
+
 	public static String projectFolder = null;
 	public static String resultsFolder = "results";
 	public static String projectName = "";
@@ -66,7 +68,7 @@ public class DuDe {
 	public static List<String> languages = new ArrayList<>();
 	public static ArrayList<String> fileNames = new ArrayList<>();
 
-	private static Argumenthor init(List<String> args, String filename) {
+	private static Argumenthor init(String[] args, String filename) {
 		final Argumenthor argumenthor = configureArgumenthor(args, filename);
 		projectFolder = (String) argumenthor.getRawValue(PROJECT_FOLDER);
 		projectName = (String) argumenthor.getRawValue(PROJECT_NAME);
@@ -104,9 +106,9 @@ public class DuDe {
 	public static HashMap<String, List<Duplication>> resultsMap = new HashMap<>();
 
 	public static void main(String[] args) throws IOException {
-		final Argumenthor argumenthor = init(Arrays.asList(args), "config.txt");
+		final Argumenthor argumenthor = init(args, "config.txt");
 
-		Processor processor = new SuffixTreeProcessor((String) argumenthor.getRawValue(LINGUIST_FILE), (String) argumenthor.getRawValue(IGNORE_FILE), projectFolder, new IdenticalCompareStrategy());
+		Processor processor = new SuffixTreeProcessor((String) argumenthor.getRawValue(LINGUIST_FILE), (String) argumenthor.getRawValue(IGNORE_FILE), (String) argumenthor.getRawValue(WHITELIST_FILE), projectFolder, new IdenticalCompareStrategy());
 
 		Parameters params = new Parameters(minDuplicationLength, maxLineBias, minExactChunk, true);
 		processor.setParams(params);
@@ -176,7 +178,7 @@ public class DuDe {
 				+ projectName + "-external_duplication.csv");
 	}
 
-	private static Argumenthor configureArgumenthor(List<String> args, String filename) {
+	private static Argumenthor configureArgumenthor(String[] args, String filename) {
 		final ArgumenthorConfiguration configuration = new ArgumenthorConfiguration(
 				new StringField(PROJECT_NAME, null),
 				new StringField(PROJECT_FOLDER, DEFAULT_PROJECT_FOLDER),
@@ -190,10 +192,11 @@ public class DuDe {
 				new StringListField(LANGUAGES, Collections.emptyList(), ","),
 				new StringListField(EXTENSIONS, Collections.emptyList(), ","),
 				new StringField(LINGUIST_FILE, DEFAULT_LINGUIST_FILE),
-				new StringField(IGNORE_FILE, DEFAULT_IGNORE_FILE)
+				new StringField(IGNORE_FILE, DEFAULT_IGNORE_FILE),
+				new StringField(WHITELIST_FILE, null)
 		);
 		final ArgsSource source = new ArgsSource();
-		source.setArgsList(args);
+		source.setArgs(args);
 		configuration.addSource(source);
 		configuration.addSource(new EnvSource("dude"));
 		final PropertiesSource propertiesSource = new PropertiesSource();

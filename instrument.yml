@@ -24,6 +24,7 @@ commands:
 #      DUDE_LANGUAGES: java,xml,c++
 #      DUDE_LINGUIST_FILE: ${instrument}/languages.yml
 #      DUDE_IGNORE_FILE: ${instrument}/.ignore
+#      DUDE_WHITELIST_FILE: ${instrument}/.whitelist
 
 parameters:
   max-heap: 8g
