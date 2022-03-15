@@ -36,8 +36,8 @@ environment:
   DUDE_MAX_LINESIZE: 500 # dude will ignore lines longer than this value
   DUDE_MAX_FILESIZE: 10000 # dude will ignore files containing a number of lines larger than this value
   DUDE_MIN_FILESIZE: 50 # dude will ignore files containing a number of lines smaller than this value
-  DUDE_EXTENSIONS: '.py,.js' # the extensions to analyse (just a sample example)
-  DUDE_LANGUAGES: 'java,xml,c++' # the languages to analyse (just a sample example)
+  DUDE_EXTENSIONS: ".java,.js,.ts,.php,.c,.cc,.cpp,.h,.hh,.hpp,.cs,.sql,.lua,.groovy" # the default extensions to analyse 
+  DUDE_LANGUAGES: "java,groovy,kotlin,javascript,typescript,vue,c,c++,c#,php,python,ruby,rust,dart,perl,lua,cobol,sql" # the default languages to analyse
   DUDE_LINGUIST_FILE: ${instrument}/languages.yml # a file containing languages to extension mappings according to [GitHub Linguist](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
   DUDE_IGNORE_FILE: ${instrument}/.ignore # a file containing the patterns that DuDe should ignore in the analysis.
   DUDE_WHITELIST_FILE: ${instrument}/.whitelist # a file containing the names (one per line) of files relative to the root folder that will be taken into consideration for the analysis. When used, ignores any other filters.
