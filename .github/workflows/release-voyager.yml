@@ -12,10 +12,22 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Set Version
-        run: echo {{ github.ref }} > src/main/resources/dude-version
+
+      - name: Extract Semver
+        id: semver_parser
+        run: |
+          semver=${TAG#"refs/tags/v"}
+          semver=${semver%"-voyager"}
+          echo ::set-output name=semver::$semver
+        env:
+          TAG: ${{ github.ref }}
+
+      - name: Fill Version
+        run: echo ${{ steps.semver_parser.outputs.semver }} > src/main/resources/dude-version
+
       - name: Build
         run: mvn clean package
+
       - name: Prepare Assets
         run: |
           mkdir dude
@@ -26,8 +38,12 @@ jobs:
           cp instrument.yml dude/instrument.yml
           cp languages.yml dude/languages.yml
           cp .ignore dude/.ignore
+
       - name: Create Archive
         run: zip -r dude-voyager.zip dude
+
+      - name: Prepare Release Notes
+        run: touch ${{ github.workspace }}/releaseNotes/v${{ steps.semver_parser.outputs.semver }}.md
 
       - name: Create Release
         id: create_release

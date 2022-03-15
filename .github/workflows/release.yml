@@ -13,8 +13,22 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Extract Semver
+        id: semver_parser
+        run: |
+          semver=${TAG#"refs/tags/v"}
+          semver=${semver%"-voyager"}
+          echo ::set-output name=semver::$semver
+        env:
+          TAG: ${{ github.ref }}
+
+      - name: Fill Version
+        run: echo ${{ steps.semver_parser.outputs.semver }} > src/main/resources/dude-version
+
       - name: Build
         run: mvn clean install
+
       - name: Prepare Assets
         run: |
           mkdir dude
@@ -25,8 +39,12 @@ jobs:
           cp dude.sh dude/dude.sh
           cp dude.bat dude/dude.bat
           chmod +x dude/dude.sh
+
       - name: Create Archive
         run: zip -r dude.zip dude
+
+      - name: Prepare Release Notes
+        run: touch ${{ github.workspace }}/releaseNotes/v${{ steps.semver_parser.outputs.semver }}.md
 
       - name: Create Release
         id: create_release
