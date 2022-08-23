@@ -88,7 +88,7 @@ public class DuDe {
             System.exit(-1);
         }
         if (extensions.size() == 0) {
-            extensions = Arrays.asList(".java", ".js", ".ts", ".php", ".c", ".cc", ".cpp", ".h", ".hh", ".hpp", ".cs", ".sql", ".lua", ".groovy");
+            extensions = Arrays.asList(".java", ".js", ".ts", ".php", ".c", ".cc", ".cpp", ".h", ".hh", ".hpp", ".cs", ".sql", ".lua", ".groovy", ".vb", ".fs");
         }
         if (languages.size() == 0) {
             languages = Arrays.asList("java", "groovy", "kotlin",
@@ -96,7 +96,7 @@ public class DuDe {
 					"c", "c++", "c#",
 					"php", "python", "ruby", "rust", "dart",
 					"perl", "lua", "cobol",
-					"sql");
+					"sql", "vbnet", "f#");
         }
 
         System.err.println("project.name=" + projectName);
