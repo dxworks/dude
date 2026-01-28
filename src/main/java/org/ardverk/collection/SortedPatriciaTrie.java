@@ -482,7 +482,7 @@ public class SortedPatriciaTrie<K, V> extends PatriciaTrie<K, V> implements Sort
      * <p>This is implemented by going always to the right until
      * we encounter a valid uplink. That uplink is the last key.
      */
-    TrieEntry<K, V> lastEntry() {
+    public TrieEntry<K, V> lastEntry() {
         return followRight(root.left);
     }
    
