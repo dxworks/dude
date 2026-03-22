@@ -46,7 +46,11 @@ jobs:
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
 
   github-release:
-    needs: [parse-tag, archive]
+     needs: [parse-tag, archive, docker]
+    if: |
+      always() &&
+      needs.archive.result == 'success' &&
+      (needs.docker.result == 'success' || needs.docker.result == 'skipped')
     permissions:
       contents: write
     uses: dxworks/pipelines/.github/workflows/release-github.yml@v1
