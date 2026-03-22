@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="regression" tests="2" failures="0" errors="0" time="0">
+    <testcase classname="jfreechart" name="jfreechart-internal_duplication.json" time="0"/>
+    <testcase classname="jfreechart" name="jfreechart-external_duplication.csv (extra)" time="0"/>
+  </testsuite>
+</testsuites>

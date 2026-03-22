@@ -152,7 +152,9 @@ public class DuDe {
             resultsMap.put(duplicatedFile, duplicationForSecondaryFile);
         }
 
-        PrintWriter external_duplication = new PrintWriter("results/" + projectName + "-external_duplication.csv");
+        File externalDupFile = Paths.get(resultsFolder, projectName + "-external_duplication.csv").toFile();
+        externalDupFile.getAbsoluteFile().getParentFile().mkdirs();
+        PrintWriter external_duplication = new PrintWriter(externalDupFile);
 
         List<PropertyDTO> listOfInternalDuplicationObjects = new ArrayList<>();
 

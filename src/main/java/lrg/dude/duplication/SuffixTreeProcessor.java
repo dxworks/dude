@@ -1,9 +1,9 @@
 package lrg.dude.duplication;
 
 import org.ardverk.collection.AdaptedPatriciaTrie;
-import org.dxworks.ignorerLibrary.Ignorer;
-import org.dxworks.ignorerLibrary.IgnorerBuilder;
 import org.dxworks.linguist.Linguist;
+import org.dxworks.utils.ignorer.Ignorer;
+import org.dxworks.utils.ignorer.IgnorerBuilder;
 
 import java.io.File;
 import java.io.IOException;
