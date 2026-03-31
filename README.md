@@ -12,6 +12,33 @@ instruments:
     asset: dude-voyager.zip
 ```
 
+## Summary Artifacts
+
+DuDe extraction writes duplication outputs in `results/`:
+
+- `<project>-internal_duplication.json`
+- `<project>-external_duplication.csv`
+
+Use the Python helper to generate Voyager summary artifacts from these files:
+
+```bash
+python3 dude-summary.py results
+```
+
+On Windows you can use:
+
+```bash
+py -3 dude-summary.py results
+```
+
+This command creates:
+
+- `results/summary.md`
+- `results/summary.html`
+
+If both DuDe duplication outputs are missing, the script generates missing
+summary artifacts.
+
 ### Configure in Voyager
 
 To configure DuDe as a Voyager instrument you can add the following parameters and environment variables in the `mission.yml` file:

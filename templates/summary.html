@@ -1,0 +1,107 @@
+<section class="dude-summary">
+  <style>
+    .dude-summary {
+      color: #1f2328;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .dude-summary .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 8px 16px;
+      margin: 4px 0;
+    }
+
+    .dude-summary .summary-item {
+      padding: 6px 8px;
+      background: #f6f8fa;
+      border-radius: 6px;
+    }
+
+    .dude-summary table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 0.95rem;
+    }
+
+    .dude-summary th,
+    .dude-summary td {
+      border: 1px solid #d0d7de;
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .dude-summary th {
+      background: #f6f8fa;
+      font-weight: 600;
+    }
+
+    .dude-summary td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+
+  {{#if isMissing}}
+    <p>Summary input is missing</p>
+  {{else}}
+    <div class="summary-grid">
+      <div class="summary-item"><strong>Internal input files</strong><br>{{metrics.internalFilesInputFormatted}}</div>
+      <div class="summary-item"><strong>External input files</strong><br>{{metrics.externalFilesInputFormatted}}</div>
+      <div class="summary-item"><strong>Internal duplication files</strong><br>{{metrics.filesWithInternalDuplicationFormatted}}</div>
+      <div class="summary-item"><strong>Internal duplicated lines</strong><br>{{metrics.internalDuplicatedLinesTotalFormatted}}</div>
+      <div class="summary-item"><strong>External pairs</strong><br>{{metrics.externalPairsTotalFormatted}}</div>
+      <div class="summary-item"><strong>External duplicated lines</strong><br>{{metrics.externalDuplicatedLinesTotalFormatted}}</div>
+      <div class="summary-item"><strong>Unique external files</strong><br>{{metrics.uniqueExternalFilesCountFormatted}}</div>
+      <div class="summary-item"><strong>Generated at</strong><br>{{generatedAt}}</div>
+    </div>
+
+    <h3>Top Internal Duplication Files</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Duplicated Lines</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#if topInternalFiles}}
+          {{#each topInternalFiles}}
+            <tr>
+              <td>{{this.file}}</td>
+              <td class="num">{{this.duplicatedLinesFormatted}}</td>
+            </tr>
+          {{/each}}
+        {{else}}
+          <tr><td colspan="2">No internal duplication data available.</td></tr>
+        {{/if}}
+      </tbody>
+    </table>
+
+    <h3>Top External Duplication Pairs</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>File 1</th>
+          <th>File 2</th>
+          <th>Duplicated Lines</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#if topExternalPairs}}
+          {{#each topExternalPairs}}
+            <tr>
+              <td>{{this.fileOne}}</td>
+              <td>{{this.fileTwo}}</td>
+              <td class="num">{{this.duplicatedLinesFormatted}}</td>
+            </tr>
+          {{/each}}
+        {{else}}
+          <tr><td colspan="3">No external duplication data available.</td></tr>
+        {{/if}}
+      </tbody>
+    </table>
+  {{/if}}
+</section>
