@@ -1,6 +1,6 @@
-name: dude
+name: DuDe
 id: dude
-version: 1.0.0
+version: 1.2.5
 
 actions:
   start:
@@ -37,3 +37,8 @@ actions:
           destination: /
           files:
             - ignored_*.csv
+
+  clean:
+    with:
+      locations:
+        - source: ${instrumentDir}/results
