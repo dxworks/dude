@@ -9,6 +9,7 @@ from typing import Any
 
 def extract_dude_summary(results_directory: str | Path) -> dict[str, Any]:
     target = Path(results_directory)
+    extension_language_map = _load_extension_language_map(Path(__file__).resolve().parent / 'languages.yml')
 
     try:
         entries = list(target.iterdir())
@@ -36,7 +37,9 @@ def extract_dude_summary(results_directory: str | Path) -> dict[str, Any]:
     )
 
     internal_by_file: dict[str, int] = {}
-    pair_lengths: dict[tuple[str, str], int] = {}
+    internal_files_by_technology: dict[str, int] = {}
+    internal_lines_by_technology: dict[str, int] = {}
+    external_by_technology_pair: dict[tuple[str, str], dict[str, Any]] = {}
     unique_external_files: set[str] = set()
 
     has_parse_failures = False
@@ -60,14 +63,45 @@ def extract_dude_summary(results_directory: str | Path) -> dict[str, Any]:
         external_duplicated_lines_total += parsed['duplicatedLinesTotal']
         unique_external_files.update(parsed['uniqueFiles'])
 
-        for pair_key, duplicated_lines in parsed['pairLengths'].items():
-            pair_lengths[pair_key] = pair_lengths.get(pair_key, 0) + duplicated_lines
+        for row in parsed['rows']:
+            file_one = str(row[0])
+            file_two = str(row[1])
+            duplicated_lines = int(row[2])
+
+            technology_one = _resolve_technology(file_one, extension_language_map)
+            technology_two = _resolve_technology(file_two, extension_language_map)
+            normalized_pair = _normalize_technology_pair(technology_one, technology_two)
+
+            if normalized_pair not in external_by_technology_pair:
+                external_by_technology_pair[normalized_pair] = {
+                    'technologyOne': normalized_pair[0],
+                    'technologyTwo': normalized_pair[1],
+                    'pairCount': 0,
+                    'duplicatedLines': 0,
+                }
+
+            external_by_technology_pair[normalized_pair]['pairCount'] += 1
+            external_by_technology_pair[normalized_pair]['duplicatedLines'] += duplicated_lines
 
     files_with_internal_duplication = len(internal_by_file)
     internal_duplicated_lines_total = sum(internal_by_file.values())
 
-    top_internal_files = _build_top_internal_files(internal_by_file)
-    top_external_pairs = _build_top_external_pairs(pair_lengths)
+    for file_name, duplicated_lines in internal_by_file.items():
+        technology = _resolve_technology(file_name, extension_language_map)
+        internal_files_by_technology[technology] = internal_files_by_technology.get(technology, 0) + 1
+        internal_lines_by_technology[technology] = internal_lines_by_technology.get(technology, 0) + duplicated_lines
+
+    top_internal_technologies = _build_top_internal_technologies(
+        internal_files_by_technology,
+        internal_lines_by_technology,
+        files_with_internal_duplication,
+        internal_duplicated_lines_total,
+    )
+    top_external_pairs = _build_top_external_technology_pairs(
+        external_by_technology_pair,
+        external_pairs_total,
+        external_duplicated_lines_total,
+    )
 
     has_data_quality_issues = has_parse_failures or invalid_rows_total > 0
 
@@ -79,7 +113,7 @@ def extract_dude_summary(results_directory: str | Path) -> dict[str, Any]:
         external_pairs_total=external_pairs_total,
         external_duplicated_lines_total=external_duplicated_lines_total,
         unique_external_files_count=len(unique_external_files),
-        top_internal_files=top_internal_files,
+        top_internal_technologies=top_internal_technologies,
         top_external_pairs=top_external_pairs,
         has_data_quality_issues=has_data_quality_issues,
     )
@@ -135,7 +169,7 @@ def _parse_external_duplication(file_path: Path) -> dict[str, Any]:
     pairs_total = 0
     duplicated_lines_total = 0
     unique_files: set[str] = set()
-    pair_lengths: dict[tuple[str, str], int] = {}
+    rows: list[tuple[str, str, int]] = []
 
     try:
         with file_path.open('r', encoding='utf-8', errors='replace', newline='') as handle:
@@ -165,8 +199,7 @@ def _parse_external_duplication(file_path: Path) -> dict[str, Any]:
                 unique_files.add(file_one)
                 unique_files.add(file_two)
 
-                ordered_pair = tuple(sorted((file_one, file_two)))
-                pair_lengths[ordered_pair] = pair_lengths.get(ordered_pair, 0) + duplicated_lines
+                rows.append((file_one, file_two, duplicated_lines))
     except Exception:
         had_parse_failure = True
 
@@ -176,38 +209,87 @@ def _parse_external_duplication(file_path: Path) -> dict[str, Any]:
         'pairsTotal': pairs_total,
         'duplicatedLinesTotal': duplicated_lines_total,
         'uniqueFiles': unique_files,
-        'pairLengths': pair_lengths,
+        'rows': rows,
     }
 
 
-def _build_top_internal_files(internal_by_file: dict[str, int]) -> list[dict[str, Any]]:
+def _build_top_internal_technologies(
+    internal_files_by_technology: dict[str, int],
+    internal_lines_by_technology: dict[str, int],
+    files_with_internal_duplication_total: int,
+    internal_duplicated_lines_total: int,
+) -> list[dict[str, Any]]:
     rows = [
         {
-            'file': file_name,
-            'duplicatedLines': duplicated_lines,
-            'duplicatedLinesFormatted': _format_int(duplicated_lines),
+            'technology': technology,
+            'duplicatedFiles': duplicated_files,
+            'duplicatedLines': internal_lines_by_technology.get(technology, 0),
         }
-        for file_name, duplicated_lines in internal_by_file.items()
+        for technology, duplicated_files in internal_files_by_technology.items()
     ]
-    rows.sort(key=lambda row: (-int(row['duplicatedLines']), str(row['file']).lower()))
+
+    for row in rows:
+        duplicated_files = int(row['duplicatedFiles'])
+        duplicated_lines = int(row['duplicatedLines'])
+        duplicated_files_formatted = _format_int(duplicated_files)
+        duplicated_lines_formatted = _format_int(duplicated_lines)
+        duplicated_files_percent_formatted = _format_percent(duplicated_files, files_with_internal_duplication_total)
+        duplicated_lines_percent_formatted = _format_percent(duplicated_lines, internal_duplicated_lines_total)
+
+        row['duplicatedFilesFormatted'] = duplicated_files_formatted
+        row['duplicatedLinesFormatted'] = duplicated_lines_formatted
+        row['duplicatedFilesPercentFormatted'] = duplicated_files_percent_formatted
+        row['duplicatedLinesPercentFormatted'] = duplicated_lines_percent_formatted
+        row['duplicatedFilesWithPercentFormatted'] = (
+            f'{duplicated_files_formatted} ({duplicated_files_percent_formatted})'
+        )
+        row['duplicatedLinesWithPercentFormatted'] = (
+            f'{duplicated_lines_formatted} ({duplicated_lines_percent_formatted})'
+        )
+
+    rows.sort(
+        key=lambda row: (
+            -int(row['duplicatedLines']),
+            -int(row['duplicatedFiles']),
+            str(row['technology']).lower(),
+        )
+    )
     return rows
 
 
-def _build_top_external_pairs(pair_lengths: dict[tuple[str, str], int]) -> list[dict[str, Any]]:
+def _build_top_external_technology_pairs(
+    external_by_technology_pair: dict[tuple[str, str], dict[str, Any]],
+    external_pairs_total: int,
+    external_duplicated_lines_total: int,
+) -> list[dict[str, Any]]:
     rows = [
         {
-            'fileOne': pair[0],
-            'fileTwo': pair[1],
-            'duplicatedLines': duplicated_lines,
-            'duplicatedLinesFormatted': _format_int(duplicated_lines),
+            'technologyOne': value['technologyOne'],
+            'technologyTwo': value['technologyTwo'],
+            'pairCount': value['pairCount'],
+            'pairCountFormatted': _format_int(value['pairCount']),
+            'pairCountPercentFormatted': _format_percent(value['pairCount'], external_pairs_total),
+            'duplicatedLines': value['duplicatedLines'],
+            'duplicatedLinesFormatted': _format_int(value['duplicatedLines']),
+            'duplicatedLinesPercentFormatted': _format_percent(
+                value['duplicatedLines'],
+                external_duplicated_lines_total,
+            ),
+            'pairCountWithPercentFormatted': (
+                f"{_format_int(value['pairCount'])} ({_format_percent(value['pairCount'], external_pairs_total)})"
+            ),
+            'duplicatedLinesWithPercentFormatted': (
+                f"{_format_int(value['duplicatedLines'])} ({_format_percent(value['duplicatedLines'], external_duplicated_lines_total)})"
+            ),
         }
-        for pair, duplicated_lines in pair_lengths.items()
+        for value in external_by_technology_pair.values()
     ]
     rows.sort(
         key=lambda row: (
             -int(row['duplicatedLines']),
-            str(row['fileOne']).lower(),
-            str(row['fileTwo']).lower(),
+            -int(row['pairCount']),
+            str(row['technologyOne']).lower(),
+            str(row['technologyTwo']).lower(),
         )
     )
     return rows
@@ -221,7 +303,7 @@ def _create_summary_payload(
     external_pairs_total: int,
     external_duplicated_lines_total: int,
     unique_external_files_count: int,
-    top_internal_files: list[dict[str, Any]],
+    top_internal_technologies: list[dict[str, Any]],
     top_external_pairs: list[dict[str, Any]],
     has_data_quality_issues: bool,
 ) -> dict[str, Any]:
@@ -243,7 +325,7 @@ def _create_summary_payload(
         'generated.at': generated_at,
     }
 
-    top_internal_preview = top_internal_files[:10]
+    top_internal_preview = top_internal_technologies[:10]
     top_external_preview = top_external_pairs[:10]
 
     markdown_lines = [
@@ -255,32 +337,34 @@ def _create_summary_payload(
         f'- External duplicated lines (total): {_format_int(external_duplicated_lines_total)}',
         f'- Unique files in external duplication: {_format_int(unique_external_files_count)}',
         '',
-        '### Top Internal Duplication Files',
+        '### Top Internal Duplication Technologies',
         '',
-        '| File | Duplicated Lines |',
-        '| --- | ---: |',
+        '| Technology | Duplicated Files | Duplicated Lines |',
+        '| --- | ---: | ---: |',
     ]
 
     if len(top_internal_preview) == 0:
-        markdown_lines.append('| _none_ | 0 |')
+        markdown_lines.append('| _none_ | 0 (0.00%) | 0 (0.00%) |')
     else:
         for row in top_internal_preview:
-            markdown_lines.append(f"| {row['file']} | {row['duplicatedLinesFormatted']} |")
+            markdown_lines.append(
+                f"| {row['technology']} | {row['duplicatedFilesWithPercentFormatted']} | {row['duplicatedLinesWithPercentFormatted']} |"
+            )
 
     markdown_lines.extend([
         '',
-        '### Top External Duplication Pairs',
+        '### Top External Duplication Technology Pairs',
         '',
-        '| File 1 | File 2 | Duplicated Lines |',
-        '| --- | --- | ---: |',
+        '| Technology 1 | Technology 2 | Duplicated Files | Duplicated Lines |',
+        '| --- | --- | ---: | ---: |',
     ])
 
     if len(top_external_preview) == 0:
-        markdown_lines.append('| _none_ | _none_ | 0 |')
+        markdown_lines.append('| _none_ | _none_ | 0 (0.00%) | 0 (0.00%) |')
     else:
         for row in top_external_preview:
             markdown_lines.append(
-                f"| {row['fileOne']} | {row['fileTwo']} | {row['duplicatedLinesFormatted']} |"
+                f"| {row['technologyOne']} | {row['technologyTwo']} | {row['pairCountWithPercentFormatted']} | {row['duplicatedLinesWithPercentFormatted']} |"
             )
 
     template_model = {
@@ -294,7 +378,7 @@ def _create_summary_payload(
             'externalDuplicatedLinesTotalFormatted': _format_int(external_duplicated_lines_total),
             'uniqueExternalFilesCountFormatted': _format_int(unique_external_files_count),
         },
-        'topInternalFiles': top_internal_preview,
+        'topInternalTechnologies': top_internal_preview,
         'topExternalPairs': top_external_preview,
     }
 
@@ -317,6 +401,77 @@ def _resolve_status(internal_file_count: int, external_file_count: int, has_data
 
 def _format_int(value: int) -> str:
     return f'{value:,}'
+
+
+def _format_percent(part: int, whole: int) -> str:
+    if whole <= 0:
+        return '0.00%'
+    return f'{(part * 100.0) / whole:.2f}%'
+
+
+def _normalize_technology_pair(technology_one: str, technology_two: str) -> tuple[str, str]:
+    if technology_one.lower() <= technology_two.lower():
+        return technology_one, technology_two
+    return technology_two, technology_one
+
+
+def _resolve_technology(file_path: str, extension_language_map: dict[str, str]) -> str:
+    extension = Path(file_path).suffix.lower()
+    if extension in extension_language_map:
+        return extension_language_map[extension]
+
+    return 'Unknown'
+
+
+def _load_extension_language_map(languages_file: Path) -> dict[str, str]:
+    try:
+        lines = languages_file.read_text(encoding='utf-8', errors='replace').splitlines()
+    except Exception:
+        return {}
+
+    extension_language_map: dict[str, str] = {}
+    current_language = ''
+    in_extensions = False
+
+    for raw_line in lines:
+        line = raw_line.rstrip()
+        stripped = line.strip()
+
+        if not stripped or stripped.startswith('#'):
+            continue
+
+        if not line.startswith(' '):
+            current_language = _parse_language_key(line)
+            in_extensions = False
+            continue
+
+        if not current_language:
+            continue
+
+        if line.startswith('  extensions:'):
+            in_extensions = True
+            continue
+
+        if line.startswith('  ') and not line.startswith('  - '):
+            in_extensions = False
+
+        if in_extensions and stripped.startswith('- '):
+            extension = stripped[2:].strip().strip('"\'').lower()
+            if extension.startswith('.') and len(extension) > 1 and extension not in extension_language_map:
+                extension_language_map[extension] = current_language
+
+    return extension_language_map
+
+
+def _parse_language_key(line: str) -> str:
+    if ':' not in line:
+        return ''
+    key = line.split(':', 1)[0].strip()
+    if key.startswith('"') and key.endswith('"'):
+        return key[1:-1]
+    if key.startswith("'") and key.endswith("'"):
+        return key[1:-1]
+    return key
 
 
 def _iso_now() -> str:

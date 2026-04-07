@@ -42,66 +42,118 @@
       text-align: right;
       font-variant-numeric: tabular-nums;
     }
+
+    .dude-summary details {
+      margin-top: 12px;
+    }
+
+    .dude-summary summary {
+      list-style: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #24292f;
+      padding: 2px 0;
+      user-select: none;
+    }
+
+    .dude-summary summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .dude-summary summary::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid #57606a;
+      border-bottom: 2px solid #57606a;
+      transform: rotate(-45deg);
+      transition: transform 0.15s ease;
+      margin-left: 2px;
+      flex-shrink: 0;
+    }
+
+    .dude-summary details[open] summary::before {
+      transform: rotate(45deg);
+    }
+
+    .dude-summary summary:focus-visible {
+      outline: 2px solid #0969da;
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    .dude-summary .section-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      line-height: 1.2;
+    }
   </style>
 
   {{#if isMissing}}
     <p>Summary input is missing</p>
   {{else}}
     <div class="summary-grid">
-      <div class="summary-item"><strong>Internal input files</strong><br>{{metrics.internalFilesInputFormatted}}</div>
-      <div class="summary-item"><strong>External input files</strong><br>{{metrics.externalFilesInputFormatted}}</div>
       <div class="summary-item"><strong>Internal duplication files</strong><br>{{metrics.filesWithInternalDuplicationFormatted}}</div>
       <div class="summary-item"><strong>Internal duplicated lines</strong><br>{{metrics.internalDuplicatedLinesTotalFormatted}}</div>
       <div class="summary-item"><strong>External pairs</strong><br>{{metrics.externalPairsTotalFormatted}}</div>
       <div class="summary-item"><strong>External duplicated lines</strong><br>{{metrics.externalDuplicatedLinesTotalFormatted}}</div>
       <div class="summary-item"><strong>Unique external files</strong><br>{{metrics.uniqueExternalFilesCountFormatted}}</div>
-      <div class="summary-item"><strong>Generated at</strong><br>{{generatedAt}}</div>
     </div>
 
-    <h3>Top Internal Duplication Files</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>File</th>
-          <th>Duplicated Lines</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#if topInternalFiles}}
-          {{#each topInternalFiles}}
-            <tr>
-              <td>{{this.file}}</td>
-              <td class="num">{{this.duplicatedLinesFormatted}}</td>
-            </tr>
-          {{/each}}
-        {{else}}
-          <tr><td colspan="2">No internal duplication data available.</td></tr>
-        {{/if}}
-      </tbody>
-    </table>
+    <details open>
+      <summary><span class="section-title">Top Internal Duplication Technologies</span></summary>
+      <table>
+        <thead>
+          <tr>
+            <th>Technology</th>
+            <th>Duplicated Files</th>
+            <th>Duplicated Lines</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#if topInternalTechnologies}}
+            {{#each topInternalTechnologies}}
+              <tr>
+                <td>{{this.technology}}</td>
+                <td class="num">{{this.duplicatedFilesWithPercentFormatted}}</td>
+                <td class="num">{{this.duplicatedLinesWithPercentFormatted}}</td>
+              </tr>
+            {{/each}}
+          {{else}}
+            <tr><td colspan="3">No internal duplication data available.</td></tr>
+          {{/if}}
+        </tbody>
+      </table>
+    </details>
 
-    <h3>Top External Duplication Pairs</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>File 1</th>
-          <th>File 2</th>
-          <th>Duplicated Lines</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#if topExternalPairs}}
-          {{#each topExternalPairs}}
-            <tr>
-              <td>{{this.fileOne}}</td>
-              <td>{{this.fileTwo}}</td>
-              <td class="num">{{this.duplicatedLinesFormatted}}</td>
-            </tr>
-          {{/each}}
-        {{else}}
-          <tr><td colspan="3">No external duplication data available.</td></tr>
-        {{/if}}
-      </tbody>
-    </table>
+    <details open>
+      <summary><span class="section-title">Top External Duplication Technology Pairs</span></summary>
+      <table>
+        <thead>
+          <tr>
+            <th>Technology 1</th>
+            <th>Technology 2</th>
+            <th>Duplicated Files</th>
+            <th>Duplicated Lines</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#if topExternalPairs}}
+            {{#each topExternalPairs}}
+              <tr>
+                <td>{{this.technologyOne}}</td>
+                <td>{{this.technologyTwo}}</td>
+                <td class="num">{{this.pairCountWithPercentFormatted}}</td>
+                <td class="num">{{this.duplicatedLinesWithPercentFormatted}}</td>
+              </tr>
+            {{/each}}
+          {{else}}
+            <tr><td colspan="4">No external duplication data available.</td></tr>
+          {{/if}}
+        </tbody>
+      </table>
+    </details>
   {{/if}}
 </section>
