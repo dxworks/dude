@@ -1,0 +1,44 @@
+name: DuDe
+id: dude
+version: 1.2.5
+
+actions:
+  start:
+    parameters:
+      max-heap: 8g
+    environment:
+      DUDE_PROJECT_NAME: ${repoName}
+      DUDE_PROJECT_FOLDER: ${repo}
+    commands:
+      run-dude:
+        id: run-dude
+        dir: ${instrumentPath}
+        command: >-
+          java -Xmx${max-heap} -jar dude.jar
+
+  summary:
+    md-file: results/summary.md
+    html-file: results/summary.html
+    category: Technology Breakdown
+    commands:
+      generate-summary:
+        id: generate-summary
+        dir: ${instrumentPath}
+        command:
+          windows: py -3 dude-summary.py "${instrumentPath}/results"
+          unix: python3 dude-summary.py "${instrumentPath}/results"
+
+  pack:
+    with:
+      locations:
+        - source: ${instrumentDir}/results
+          destination: /results
+        - source: ${instrumentDir}
+          destination: /
+          files:
+            - ignored_*.csv
+
+  clean:
+    with:
+      locations:
+        - source: ${instrumentDir}/results
