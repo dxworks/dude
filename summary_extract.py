@@ -325,9 +325,6 @@ def _create_summary_payload(
         'generated.at': generated_at,
     }
 
-    top_internal_preview = top_internal_technologies[:10]
-    top_external_preview = top_external_pairs[:10]
-
     markdown_lines = [
         '## DuDe',
         '',
@@ -337,34 +334,34 @@ def _create_summary_payload(
         f'- External duplicated lines (total): {_format_int(external_duplicated_lines_total)}',
         f'- Unique files in external duplication: {_format_int(unique_external_files_count)}',
         '',
-        '### Top Internal Duplication Technologies',
+        '### Internal Duplication Technologies',
         '',
         '| Technology | Duplicated Files | Duplicated Lines |',
         '| --- | ---: | ---: |',
     ]
 
-    if len(top_internal_preview) == 0:
+    if len(top_internal_technologies) == 0:
         markdown_lines.append('| _none_ | 0 (0.00%) | 0 (0.00%) |')
     else:
-        for row in top_internal_preview:
+        for row in top_internal_technologies:
             markdown_lines.append(
                 f"| {row['technology']} | {row['duplicatedFilesWithPercentFormatted']} | {row['duplicatedLinesWithPercentFormatted']} |"
             )
 
     markdown_lines.extend([
         '',
-        '### Top External Duplication Technology Pairs',
+        '### External Duplication Technology Pairs',
         '',
-        '| Technology 1 | Technology 2 | Duplicated Files | Duplicated Lines |',
-        '| --- | --- | ---: | ---: |',
+        '| Technology Pair | Duplicated Files | Duplicated Lines |',
+        '| --- | ---: | ---: |',
     ])
 
-    if len(top_external_preview) == 0:
-        markdown_lines.append('| _none_ | _none_ | 0 (0.00%) | 0 (0.00%) |')
+    if len(top_external_pairs) == 0:
+        markdown_lines.append('| _none_ | 0 (0.00%) | 0 (0.00%) |')
     else:
-        for row in top_external_preview:
+        for row in top_external_pairs:
             markdown_lines.append(
-                f"| {row['technologyOne']} | {row['technologyTwo']} | {row['pairCountWithPercentFormatted']} | {row['duplicatedLinesWithPercentFormatted']} |"
+                f"| {row['technologyOne']}  ↔  {row['technologyTwo']} | {row['pairCountWithPercentFormatted']} | {row['duplicatedLinesWithPercentFormatted']} |"
             )
 
     template_model = {
@@ -378,8 +375,8 @@ def _create_summary_payload(
             'externalDuplicatedLinesTotalFormatted': _format_int(external_duplicated_lines_total),
             'uniqueExternalFilesCountFormatted': _format_int(unique_external_files_count),
         },
-        'topInternalTechnologies': top_internal_preview,
-        'topExternalPairs': top_external_preview,
+        'topInternalTechnologies': top_internal_technologies,
+        'topExternalPairs': top_external_pairs,
     }
 
     return {

@@ -25,6 +25,10 @@
       font-size: 0.95rem;
     }
 
+    .dude-summary .table-container {
+      margin-top: 12px;
+    }
+
     .dude-summary th,
     .dude-summary td {
       border: 1px solid #d0d7de;
@@ -41,6 +45,75 @@
     .dude-summary td.num {
       text-align: right;
       font-variant-numeric: tabular-nums;
+    }
+
+    .dude-summary .table-pagination {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .dude-summary .table-pagination button {
+      border: 1px solid #d0d7de;
+      background: #f6f8fa;
+      color: #1f2328;
+      border-radius: 6px;
+      padding: 4px 10px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .dude-summary .table-pagination button[disabled] {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .dude-summary .page-indicator {
+      font-size: 0.9rem;
+      color: #57606a;
+    }
+
+    .dude-summary td.tech-pair {
+      padding: 6px 20px 6px 10px;
+    }
+
+    .dude-summary .tech-pair-layout {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      column-gap: 10px;
+      width: 100%;
+    }
+
+    .dude-summary .tech-pair-left {
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dude-summary .tech-pair-arrow {
+      text-align: center;
+      font-weight: 700;
+      color: #57606a;
+    }
+
+    .dude-summary .tech-pair-right {
+      text-align: right;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dude-summary .external-technology-table th.tech-pair-col,
+    .dude-summary .external-technology-table td.tech-pair {
+      width: 58%;
+    }
+
+    .dude-summary .external-technology-table th.metric-col,
+    .dude-summary .external-technology-table td.num {
+      padding-left: 14px;
     }
 
     .dude-summary details {
@@ -102,58 +175,149 @@
       <div class="summary-item"><strong>Unique external files</strong><br>{{metrics.uniqueExternalFilesCountFormatted}}</div>
     </div>
 
-    <details open>
-      <summary><span class="section-title">Top Internal Duplication Technologies</span></summary>
-      <table>
-        <thead>
-          <tr>
-            <th>Technology</th>
-            <th>Duplicated Files</th>
-            <th>Duplicated Lines</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{#if topInternalTechnologies}}
-            {{#each topInternalTechnologies}}
-              <tr>
-                <td>{{this.technology}}</td>
-                <td class="num">{{this.duplicatedFilesWithPercentFormatted}}</td>
-                <td class="num">{{this.duplicatedLinesWithPercentFormatted}}</td>
-              </tr>
-            {{/each}}
-          {{else}}
-            <tr><td colspan="3">No internal duplication data available.</td></tr>
-          {{/if}}
-        </tbody>
-      </table>
+    <details>
+      <summary><span class="section-title">Internal Duplication Technologies</span></summary>
+      <div class="table-container">
+        <table class="internal-technology-table">
+          <thead>
+            <tr>
+              <th>Technology</th>
+              <th>Duplicated Files</th>
+              <th>Duplicated Lines</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#if topInternalTechnologies}}
+              {{#each topInternalTechnologies}}
+                <tr>
+                  <td>{{this.technology}}</td>
+                  <td class="num">{{this.duplicatedFilesWithPercentFormatted}}</td>
+                  <td class="num">{{this.duplicatedLinesWithPercentFormatted}}</td>
+                </tr>
+              {{/each}}
+            {{else}}
+              <tr><td colspan="3">No internal duplication data available.</td></tr>
+            {{/if}}
+          </tbody>
+        </table>
+        <div class="table-pagination" data-page-size="5">
+          <button type="button" class="prev-page" aria-label="Previous page">&larr;</button>
+          <span class="page-indicator">Page 1 of 1</span>
+          <button type="button" class="next-page" aria-label="Next page">&rarr;</button>
+        </div>
+      </div>
     </details>
 
-    <details open>
-      <summary><span class="section-title">Top External Duplication Technology Pairs</span></summary>
-      <table>
-        <thead>
-          <tr>
-            <th>Technology 1</th>
-            <th>Technology 2</th>
-            <th>Duplicated Files</th>
-            <th>Duplicated Lines</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{#if topExternalPairs}}
-            {{#each topExternalPairs}}
-              <tr>
-                <td>{{this.technologyOne}}</td>
-                <td>{{this.technologyTwo}}</td>
-                <td class="num">{{this.pairCountWithPercentFormatted}}</td>
-                <td class="num">{{this.duplicatedLinesWithPercentFormatted}}</td>
-              </tr>
-            {{/each}}
-          {{else}}
-            <tr><td colspan="4">No external duplication data available.</td></tr>
-          {{/if}}
-        </tbody>
-      </table>
+    <details>
+      <summary><span class="section-title">External Duplication Technology Pairs</span></summary>
+      <div class="table-container">
+        <table class="external-technology-table">
+          <thead>
+            <tr>
+              <th class="tech-pair-col">Technology Pair</th>
+              <th class="metric-col">Duplicated Files</th>
+              <th class="metric-col">Duplicated Lines</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#if topExternalPairs}}
+              {{#each topExternalPairs}}
+                <tr>
+                  <td class="tech-pair">
+                    <div class="tech-pair-layout">
+                      <span class="tech-pair-left">{{this.technologyOne}}</span>
+                      <span class="tech-pair-arrow">&harr;</span>
+                      <span class="tech-pair-right">{{this.technologyTwo}}</span>
+                    </div>
+                  </td>
+                  <td class="num">{{this.pairCountWithPercentFormatted}}</td>
+                  <td class="num">{{this.duplicatedLinesWithPercentFormatted}}</td>
+                </tr>
+              {{/each}}
+            {{else}}
+              <tr><td colspan="3">No external duplication data available.</td></tr>
+            {{/if}}
+          </tbody>
+        </table>
+        <div class="table-pagination" data-page-size="5">
+          <button type="button" class="prev-page" aria-label="Previous page">&larr;</button>
+          <span class="page-indicator">Page 1 of 1</span>
+          <button type="button" class="next-page" aria-label="Next page">&rarr;</button>
+        </div>
+      </div>
     </details>
+
+    <script>
+      (function () {
+        var section = document.currentScript && document.currentScript.closest('.dude-summary')
+        if (!section) {
+          return
+        }
+
+        var tableContainers = Array.prototype.slice.call(section.querySelectorAll('.table-container'))
+        tableContainers.forEach(function (container) {
+          var pagination = container.querySelector('.table-pagination')
+          var tableBody = container.querySelector('table tbody')
+          if (!pagination || !tableBody) {
+            return
+          }
+
+          var rows = Array.prototype.slice.call(tableBody.querySelectorAll('tr'))
+          if (rows.length === 0) {
+            pagination.style.display = 'none'
+            return
+          }
+
+          if (rows.length === 1 && rows[0].children.length === 1) {
+            pagination.style.display = 'none'
+            return
+          }
+
+          var pageSize = Number(pagination.getAttribute('data-page-size') || '5')
+          var indicator = pagination.querySelector('.page-indicator')
+          var previousButton = pagination.querySelector('.prev-page')
+          var nextButton = pagination.querySelector('.next-page')
+          if (!indicator || !previousButton || !nextButton) {
+            return
+          }
+
+          var totalPages = Math.max(1, Math.ceil(rows.length / pageSize))
+          var currentPage = 1
+
+          function renderPage() {
+            var start = (currentPage - 1) * pageSize
+            var end = start + pageSize
+
+            rows.forEach(function (row, index) {
+              row.style.display = index >= start && index < end ? '' : 'none'
+            })
+
+            indicator.textContent = 'Page ' + currentPage + ' of ' + totalPages
+            previousButton.disabled = currentPage === 1
+            nextButton.disabled = currentPage === totalPages
+          }
+
+          previousButton.addEventListener('click', function () {
+            if (currentPage > 1) {
+              currentPage -= 1
+              renderPage()
+            }
+          })
+
+          nextButton.addEventListener('click', function () {
+            if (currentPage < totalPages) {
+              currentPage += 1
+              renderPage()
+            }
+          })
+
+          if (rows.length <= pageSize) {
+            pagination.style.display = 'none'
+          }
+
+          renderPage()
+        })
+      })()
+    </script>
   {{/if}}
 </section>
