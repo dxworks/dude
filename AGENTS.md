@@ -54,7 +54,7 @@ scripts/
   regression-test.sh                  — Compare output against latest release
 
 config.txt                            — Default configuration file
-languages.yml                         — GitHub Linguist language definitions
+languages.yml                         — GitHub Linguist language definitions, copied from the dx-linguist jar by the build (not in git)
 instrument.yml                        — Voyager instrument descriptor
 .ignore                               — Patterns to exclude from analysis
 ```
