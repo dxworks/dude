@@ -32,6 +32,7 @@ Parameters can be set via CLI args, environment variables (prefixed `DUDE_`), or
 | `min.filesize` | `50` | Ignore files with fewer lines |
 | `extensions` | `.java,.js,.ts,...` | File extensions to analyse |
 | `languages` | `java,groovy,...` | Language names for linguist matching |
+| `linguist.file` | `languages.yml` | Language definitions file; the summary reads the same one (README › Use your own languages.yml) |
 
 ## Project Structure
 

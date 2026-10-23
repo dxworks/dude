@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import csv
 import json
+import os
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -9,7 +11,7 @@ from typing import Any
 
 def extract_dude_summary(results_directory: str | Path) -> dict[str, Any]:
     target = Path(results_directory)
-    extension_language_map = _load_extension_language_map(Path(__file__).resolve().parent / 'languages.yml')
+    extension_language_map = _load_extension_language_map(_resolve_languages_file())
 
     try:
         entries = list(target.iterdir())
@@ -418,6 +420,38 @@ def _resolve_technology(file_path: str, extension_language_map: dict[str, str]) 
         return extension_language_map[extension]
 
     return 'Unknown'
+
+
+def _resolve_languages_file() -> Path:
+    configured_file = os.environ.get('DUDE_LINGUIST_FILE')
+    if configured_file is None:
+        configured_file = _read_property(Path('config.txt'), 'linguist.file')
+
+    if configured_file is not None:
+        languages_file = Path(configured_file.strip('"\''))
+    else:
+        languages_file = Path(__file__).resolve().parent / 'languages.yml'
+
+    if languages_file.is_file() and languages_file.suffix in ('.yml', '.yaml'):
+        return languages_file
+    return Path.home() / '.linguist' / 'languages.yml'
+
+
+def _read_property(properties_file: Path, key: str) -> str | None:
+    try:
+        lines = properties_file.read_text(encoding='utf-8', errors='replace').splitlines()
+    except Exception:
+        return None
+
+    value = None
+    for line in lines:
+        stripped = line.strip()
+        if not stripped or stripped.startswith(('#', '!')):
+            continue
+        parts = re.split(r'\s*[=:]\s*|\s+', stripped, maxsplit=1)
+        if parts[0] == key:
+            value = parts[1] if len(parts) > 1 else ''
+    return value
 
 
 def _load_extension_language_map(languages_file: Path) -> dict[str, str]:
