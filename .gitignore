@@ -5,3 +5,5 @@ target/
 results/
 .regression-work/
 regression-report/
+# copied from the dx-linguist jar by the build
+/languages.yml
