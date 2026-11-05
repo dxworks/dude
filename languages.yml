@@ -382,6 +382,11 @@ COBOL:
   - ".ccp"
   - ".cobol"
   - ".cpy"
+  - ".COB"
+  - ".CBL"
+  - ".CCP"
+  - ".COBOL"
+  - ".CPY"
 COLLADA:
   type: "data"
   extensions:
