@@ -28,7 +28,7 @@
         <dependency>
             <groupId>org.dxworks.utils</groupId>
             <artifactId>dx-linguist</artifactId>
-            <version>1.0.0</version>
+            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.dxworks.utils</groupId>
@@ -68,6 +68,34 @@
                     </execution>
                 </executions>
 
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.8.1</version>
+
+                <executions>
+                    <execution>
+                        <id>copy-languages-yml</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.dxworks.utils</groupId>
+                                    <artifactId>dx-linguist</artifactId>
+                                    <includes>org/dxworks/linguist/languages.yml</includes>
+                                    <outputDirectory>${project.basedir}</outputDirectory>
+                                    <fileMappers>
+                                        <org.codehaus.plexus.components.io.filemappers.FlattenFileMapper/>
+                                    </fileMappers>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

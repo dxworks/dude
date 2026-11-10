@@ -280,8 +280,8 @@ main() {
     echo ""
 
     check_prereqs
-    download_baseline
     build_current
+    download_baseline
     clone_repos
 
     local overall_status=0
