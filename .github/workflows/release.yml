@@ -46,7 +46,7 @@ jobs:
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
 
   github-release:
-     needs: [parse-tag, archive, docker]
+    needs: [parse-tag, archive, docker]
     if: |
       always() &&
       needs.archive.result == 'success' &&
