@@ -32,6 +32,7 @@ Parameters can be set via CLI args, environment variables (prefixed `DUDE_`), or
 | `min.filesize` | `50` | Ignore files with fewer lines |
 | `extensions` | `.java,.js,.ts,...` | File extensions to analyse |
 | `languages` | `java,groovy,...` | Language names for linguist matching |
+| `linguist.file` | `languages.yml` | Language definitions file; the summary reads the same one (README › Use your own languages.yml) |
 
 ## Project Structure
 
@@ -54,7 +55,7 @@ scripts/
   regression-test.sh                  — Compare output against latest release
 
 config.txt                            — Default configuration file
-languages.yml                         — GitHub Linguist language definitions
+languages.yml                         — GitHub Linguist language definitions, copied from the dx-linguist jar by the build (not in git)
 instrument.yml                        — Voyager instrument descriptor
 .ignore                               — Patterns to exclude from analysis
 ```
